@@ -1,0 +1,225 @@
+<!DOCTYPE html><html><head><title></title><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" /><style type='text/css'>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica, sans-serif;
+  background: #282C34;
+  background-size:100%;
+  color:#fff;
+  margin:0;
+  padding:0;
+  font-weight:bold;
+}
+
+h1, h2, h3, p {
+  margin:0;
+}
+
+em, a {
+  font-style:normal;
+  color: #FF8280;
+}
+
+a {
+  color :#E4BF7F;
+  text-decoration:none;
+  text-decoration: underline;
+}
+
+.smaller {
+  font-size: 40%;
+  line-height: normal;
+}
+
+.smallest {
+  font-size: 10%;
+  line-height: normal;
+}
+
+img {
+  width:100%;
+}
+
+.kinda-centered {
+  width: 70%;
+  margin-left: 40%;
+}
+
+body > div {
+  cursor:pointer;
+  cursor:hand;
+  position:absolute;
+  top:0px;
+  left:0px;
+  padding:75px;
+  line-height:97%;
+}
+
+div.center {
+  text-align:center;
+}
+
+div.imageText {
+  text-shadow:0px 0px 5px rgba(0,0,0,0.2);
+}
+
+notes {
+    display:none;
+}
+/* normally not good, but ok in context of full screen directional navigation */
+:focus {
+    outline: 0;
+}
+</style><script type='text/javascript'>
+window.onload = function() {
+  var s = document.querySelectorAll('body > div'), ti, i;
+  var notes = [];
+  for (i = 0; i < s.length; i++) {
+    s[i].setAttribute('tabindex', 0);
+    var noteElements = s[i].getElementsByTagName('notes');
+    notes.push([]);
+    while (noteElements.length) {
+      var note = noteElements[0];
+      notes[i].push(note.innerHTML.trim());
+      note.parentNode.removeChild(note);
+    }
+  }
+  if (!s.length) return;
+  var big = window.big = { current: 0, forward: fwd, reverse: rev, go: go, length: s.length };
+  function resize() {
+    var w = window.innerWidth, h = window.innerHeight, e = s[big.current];
+    e.style.fontSize = h + 'px';
+    function pass(cinch, start) {
+      for (var i = start; i > 0 && (e.offsetWidth > w || e.offsetHeight > h); i -= cinch) {
+        e.style.fontSize = i + 'px';
+      }
+      return i + cinch;
+    }
+    pass(2, pass(5, pass(10, h - 2)));
+    e.style.marginTop = (h - e.offsetHeight) / 2 + 'px';
+  }
+  function go(n) {
+    big.current = n;
+    for (i = 0; typeof console === 'object' && i < notes[n].length; i++) console.log('%c%s: %s', 'padding:5px;font-family:serif;font-size:18px;line-height:150%;', n, notes[n][i]);
+    var e = s[n], t = parseInt(e.getAttribute('data-time-to-next') || 0, 10);
+    document.body.className = e.getAttribute('data-bodyclass') || '';
+    for (i = 0; i < s.length; i++) s[i].style.display = 'none';
+    e.style.display = 'inline';
+    e.focus();
+    if (e.firstChild && e.firstChild.nodeName === 'IMG') {
+      document.body.style.backgroundImage = 'url("' + e.firstChild.src + '")';
+      e.firstChild.style.display = 'none';
+      if ('classList' in e) e.classList.add('imageText');
+    } else {
+      document.body.style.backgroundImage = '';
+      document.body.style.backgroundColor = e.style.backgroundColor;
+    }
+    if (ti !== undefined) window.clearInterval(ti);
+    if (t > 0) ti = window.setTimeout(fwd, t * 1000);
+    resize();
+    if (window.location.hash !== n) window.location.hash = n;
+    document.title = e.textContent || e.innerText;
+  }
+  document.onclick = function(e) { if (e.target.tagName !== 'A') go(++big.current % s.length); };
+  function fwd() { go(Math.min(s.length - 1, ++big.current)); }
+  function rev() { go(Math.max(0, --big.current)); }
+  document.onkeydown = function(e) {
+    if (e.which === 39 || e.which === 34 || e.which === 40) fwd();
+    if (e.which === 37 || e.which === 33 || e.which === 38) rev();
+  };
+  document.ontouchstart = function(e) {
+    var x0 = e.changedTouches[0].pageX;
+    document.ontouchend = function(e2) {
+      var x1 = e2.changedTouches[0].pageX;
+      if (x1 - x0 < 0) fwd();
+      if (x1 - x0 > 0) rev();
+    };
+  };
+  function parse_hash() {
+    return Math.max(Math.min(s.length - 1,
+      parseInt(window.location.hash.substring(1), 10)), 0);
+  }
+  if (window.location.hash) big.current = parse_hash() || big.current;
+  window.onhashchange = function() {
+    i = parse_hash();
+    if (i !== big.current) go(i);
+  };
+  window.onresize = resize;
+  go(big.current);
+};
+</script></head><body>
+<div>Maps!</div>
+<div> <img class="kinda-centered" src="img/wapo-preview.gif" /> <br/><p class="kinda-centered">Washington Post Election Map by <a href="https://www.developmentseed.org/blog/2016/09/08/wapo-preview/">Development Seed</a></p></div>
+<div> <img src="img/toronto.gif" /></div>
+<div><img src="img/trees.png" /> <br/><p class="smallest">Exploring the Green<br/>Canopy 
+in cities around</br>the world by the<br/><a href="http://senseable.mit.edu/treepedia/">MIT Senseable  City Lab</a></p></div>
+<div>What makes these maps great?</div>
+<div>
+  <ul>
+    <li>Well designed</li>
+    <li>Tells a story</li>
+  </ul>
+</div>
+<div>But what are even web maps?</div>
+<div>They're maps...</div>
+<div>that are displayed on a website with <em>code</em> (HTML, CSS, and JavaScript)</div>
+<div>(Additional backstory on how web maps work under the hood <a href="http://maptime.io/anatomy-of-a-web-map/#0">here</a>)</div>
+<div>Where does the map data come from?</div>
+<div><a href="http://www.openstreetmap.org/#map=17/38.93707/-77.09006">OpenStreetMap</a></div>
+<div>A community-driven map that <i>anyone</i> can contribute to.</div>
+<div> <img src="img/osm.png" />Mapbox turns this</div>
+<div> <img src="img/mapbox-styles.png" />Into this</div>
+<div>Mapbox provides ways for you to include your own custom data, too</div>
+<div>How can I make my own web maps?</div>
+<div><a href="https://www.mapbox.com/studio/">Mapbox Studio!</a></div>
+<div><img src="img/mapbox-studio.png" />An online interface for customizing web maps</div>
+<div> <img src="img/studio-gallery.png" /></div>
+<div> We have a nifty manual for it <a href="https://www.mapbox.com/help/studio-manual/">here</a></div>
+<div>What can I do with Mapbox Studio?</div>
+<div>
+  <ul>
+    <li>Use a Mapbox <a href="https://www.mapbox.com/maps/#styles">template style</a></li>
+    <li>Upload custom data</li>
+    <li>Draw & edit data</li>
+    <li>Style data</li>
+    <li>Share a link to your map style</li>
+    <li>Generate a static image of your map style</li>
+  </ul>
+</div>
+<div>What <i>can't</i> you do with Mapbox Studio?</div>
+<div>
+  Add interactivity
+<p class="smaller">(Popups, hover effects, etc. This requires JavaScript code - <a href="https://www.mapbox.com/mapbox-gl-js/api/">Mapbox GL JS</a>)</p>
+</div>
+<div>
+  Manipulate data <br> <p class='smaller'>(Calculate statistics, perform geoprocessing tasks, etc. Other open-source tools are good for this, such as <a href="http://www.qgis.org/en/site/index.html">QGIS</a> and <a href="http://www.gdal.org/">GDAL</a>)</p>
+</div>
+<div><img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/Tractors_in_Potato_Field.jpg" />The field</div>
+<div>
+  <ul>
+    <li>Cartographers</li>
+    <li>GIS analysts & technicians</li>
+    <li>Remote sensing analysts & scientists</li>
+    <li>Designers</li>
+    <li>Developers</li>
+    <li>Software engineers</li>
+    <li>Project managers</li>
+  </ul>
+</div>
+<div>
+  Online resources to get started with web mapping:
+  <ul>
+    <li><a href="https://www.mapbox.com/help/studio-manual/">Mapbox Studio Manual</a></li>
+    <li><a href="http://mapschool.io/">Mapschool</a> - a free intro to geo</li>
+    <li><a href="http://maptime.io/anatomy-of-a-web-map/">Anatomy of a Web Map</a> by Maptime</li>
+    <li><a href="https://www.codecademy.com/">Codecademy:</a> Learn basics of HTML, CSS, and JavaScript</li>
+  </ul>
+</div>
+<div>And meetups!
+  <ul>
+    <li><a href="https://www.meetup.com/Maptime-DC/">Maptime DC</a></li>
+    <li><a href="https://www.meetup.com/Geo-DC/">Geo DC</a></li>
+  </ul>
+</div>
+<div>Questions?
+  <p class="smaller">nadia.barbosa@mapbox.com</p>
+  <p class="smaller">@capnbrbsa</p>
+</div>
